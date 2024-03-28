@@ -1,0 +1,9 @@
+exec kv testdata/test_countries.kv
+stdout '^US:United States$'
+
+-- testdata/test_countries.kv --
+{
+		"US": "United States",
+		"GB": "Great Britain",
+		"CA": "Canada"
+}
