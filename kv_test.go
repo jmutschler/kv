@@ -257,11 +257,12 @@ func TestSyncReturnsErrorForNonWritablePath(t *testing.T) {
 
 func TestStoreCanBeOfArbitraryType(t *testing.T) {
 	t.Parallel()
-	store, err := kv.OpenStore[int]("doesn't matter")
+	store, err := kv.OpenStore[int](t.TempDir() + "/bogus")
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = store.Set("answer", 42)
+	want := 42
+	err = store.Set("answer", want)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -269,7 +270,7 @@ func TestStoreCanBeOfArbitraryType(t *testing.T) {
 	if !ok {
 		t.Fatal("key not found")
 	}
-	if got != 42 {
+	if got != want {
 		t.Errorf("want %d, got %d", 42, got)
 	}
 }
