@@ -52,48 +52,61 @@ func TestKVParseArgsReturnsList(t *testing.T) {
 
 }
 
-func TestKVParseOneArgsReturnsList(t *testing.T) {
-	args := []string{"blah.kv"}
+func TestKVParseArgsReturnsGet(t *testing.T) {
 
-	got, err := kv.ParseArgs(args)
-	if err != nil {
-		t.Fatal(err)
+	tests := []struct {
+		args []string
+		want kv.Args
+	}{
+		{
+			args: []string{"store.kv", "us"},
+			want: kv.Args{Path: "store.kv", Verb: "get", Key: "us"},
+		},
+		{
+			args: []string{"us"},
+			want: kv.Args{Path: "default.kv", Verb: "get", Key: "us"},
+		},
 	}
 
-	want := kv.Args{Path: "blah.kv", Verb: "list"}
+	for _, tt := range tests {
 
-	if want != got {
-		t.Fatalf("want %+v, got %+v", want, got)
+		got, err := kv.ParseArgs(tt.args)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if tt.want != got {
+			t.Fatalf("want %+v, got %+v", tt.want, got)
+		}
 	}
 }
 
-func TestKVParseTwoArgsReturnsGet(t *testing.T) {
-	args := []string{"blah.kv", "us"}
+func TestKVParseArgsReturnsSet(t *testing.T) {
 
-	got, err := kv.ParseArgs(args)
-	if err != nil {
-		t.Fatal(err)
+	tests := []struct {
+		args []string
+		want kv.Args
+	}{
+		{
+			args: []string{"store.kv", "us", "united", "states"},
+			want: kv.Args{Path: "store.kv", Verb: "set", Key: "us", Value: "united states"},
+		},
+		{
+			args: []string{"us", "pizza", "is", "good"},
+			want: kv.Args{Path: "default.kv", Verb: "set", Key: "us", Value: "pizza is good"},
+		},
 	}
 
-	want := kv.Args{Path: "blah.kv", Verb: "get", Key: "us"}
+	for _, tt := range tests {
 
-	if want != got {
-		t.Fatalf("want %+v, got %+v", want, got)
-	}
-}
+		got, err := kv.ParseArgs(tt.args)
+		if err != nil {
+			t.Fatal(err)
+		}
 
-func TestKVParseThreeOrMoreArgsReturnsSet(t *testing.T) {
-	args := []string{"blah.kv", "us", "united", "states"}
-
-	got, err := kv.ParseArgs(args)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	want := kv.Args{Path: "blah.kv", Verb: "set", Key: "us", Value: "united states"}
-
-	if want != got {
-		t.Fatalf("want %+v, got %+v", want, got)
+		if tt.want != got {
+			t.Fatalf("want %+v, got %+v", tt.want, got)
+		}
 	}
 }
 

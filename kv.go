@@ -133,7 +133,7 @@ func ParseArgs(args []string) (Args, error) {
 		return a, nil
 	} else if len(args) == 1 {
 		a.Verb = "get"
-		a.Key = args[1]
+		a.Key = args[0]
 		return a, nil
 	}
 
