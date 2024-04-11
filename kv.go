@@ -8,9 +8,9 @@ import (
 	"strings"
 )
 
-type store struct {
+type store[T any] struct {
 	path string
-	data map[string]string
+	data map[string]T
 }
 
 type Args struct {
@@ -20,10 +20,10 @@ type Args struct {
 	Verb  string
 }
 
-func OpenStore(path string) (*store, error) {
-	s := &store{
+func OpenStore[T any](path string) (*store[T], error) {
+	s := &store[T]{
 		path: path,
-		data: map[string]string{},
+		data: map[string]T{},
 	}
 
 	file, err := os.Open(path)
@@ -43,17 +43,17 @@ func OpenStore(path string) (*store, error) {
 	return s, nil
 }
 
-func (s store) Get(key string) (string, bool) {
+func (s store[T]) Get(key string) (T, bool) {
 	v, ok := s.data[key]
 	return v, ok
 }
 
-func (s *store) Set(key string, value string) error {
+func (s *store[T]) Set(key string, value T) error {
 	s.data[key] = value
 	return s.Sync()
 }
 
-func (s *store) Sync() error {
+func (s *store[T]) Sync() error {
 	file, err := os.Create(s.path)
 	if err != nil {
 		return err
@@ -68,11 +68,11 @@ func (s *store) Sync() error {
 	return nil
 }
 
-func (s store) All() map[string]string {
+func (s store[T]) All() map[string]T {
 	return s.data
 }
 
-func (s *store) Close() error {
+func (s *store[T]) Close() error {
 	return s.Sync()
 }
 
@@ -84,7 +84,7 @@ func Main() int {
 
 	args, _ := ParseArgs(os.Args[1:])
 
-	store, err := OpenStore(args.Path)
+	store, err := OpenStore[string](args.Path)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		return 1

@@ -1,5 +1,7 @@
 # Essential for minimal self-hosting issue tracker
 
+* Status
+
 # Nice!
 
 * If case sensitive key search fails, try case insensitive ("Did you mean...?")

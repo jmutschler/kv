@@ -109,7 +109,7 @@ func TestKVParseArgsReturnsSet(t *testing.T) {
 func TestOpenStore(t *testing.T) {
 	t.Parallel()
 
-	store, err := kv.OpenStore("testdata/test_countries.kv")
+	store, err := kv.OpenStore[string]("testdata/test_countries.kv")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -134,7 +134,7 @@ func TestOpenStore_ReturnsErrorIfFileNotReadable(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, err = kv.OpenStore(path)
+	_, err = kv.OpenStore[string](path)
 	if err == nil {
 		t.Fatal("want error on opening unreadable file")
 	}
@@ -143,7 +143,7 @@ func TestOpenStore_ReturnsErrorIfFileNotReadable(t *testing.T) {
 func TestSetSyncsChangeToDisk(t *testing.T) {
 	t.Parallel()
 	filename := t.TempDir() + "/countries.kv"
-	store, err := kv.OpenStore(filename)
+	store, err := kv.OpenStore[string](filename)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -151,7 +151,7 @@ func TestSetSyncsChangeToDisk(t *testing.T) {
 	if err != nil {
 		t.Fatal("Set failed")
 	}
-	store, err = kv.OpenStore(filename)
+	store, err = kv.OpenStore[string](filename)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -171,7 +171,7 @@ func TestSetSyncsChangeToDisk(t *testing.T) {
 func TestSyncSyncsDataToDisk(t *testing.T) {
 	t.Parallel()
 	filename := t.TempDir() + "/countries.kv"
-	store, err := kv.OpenStore(filename)
+	store, err := kv.OpenStore[string](filename)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -183,7 +183,7 @@ func TestSyncSyncsDataToDisk(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	store, err = kv.OpenStore(filename)
+	store, err = kv.OpenStore[string](filename)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -203,7 +203,7 @@ func TestSyncSyncsDataToDisk(t *testing.T) {
 func TestGetReturnsValueAndOkIfExists(t *testing.T) {
 	t.Parallel()
 
-	store, err := kv.OpenStore(t.TempDir() + "/countries.kv")
+	store, err := kv.OpenStore[string](t.TempDir() + "/countries.kv")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -227,7 +227,7 @@ func TestGetReturnsValueAndOkIfExists(t *testing.T) {
 func TestGetReturnsEmptyValueAndNotOkIfNotExists(t *testing.T) {
 	t.Parallel()
 
-	store, err := kv.OpenStore(t.TempDir() + "/countries.kv")
+	store, err := kv.OpenStore[string](t.TempDir() + "/countries.kv")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -245,12 +245,31 @@ func TestGetReturnsEmptyValueAndNotOkIfNotExists(t *testing.T) {
 
 func TestSyncReturnsErrorForNonWritablePath(t *testing.T) {
 	t.Parallel()
-	store, err := kv.OpenStore(t.TempDir() + "/bogus/data.kv")
+	store, err := kv.OpenStore[string](t.TempDir() + "/bogus/data.kv")
 	if err != nil {
 		t.Fatal(err)
 	}
 	err = store.Sync()
 	if err == nil {
 		t.Fatal("want error syncing store to unwritable path")
+	}
+}
+
+func TestStoreCanBeOfArbitraryType(t *testing.T) {
+	t.Parallel()
+	store, err := kv.OpenStore[int]("doesn't matter")
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = store.Set("answer", 42)
+	if err != nil {
+		t.Fatal(err)
+	}
+	got, ok := store.Get("answer")
+	if !ok {
+		t.Fatal("key not found")
+	}
+	if got != 42 {
+		t.Errorf("want %d, got %d", 42, got)
 	}
 }
