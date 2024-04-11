@@ -1,10 +1,11 @@
 package kv_test
 
 import (
-	"kv"
 	"maps"
 	"os"
 	"testing"
+
+	"kv"
 
 	"github.com/rogpeppe/go-internal/testscript"
 )
@@ -15,15 +16,13 @@ func TestMain(m *testing.M) {
 	}))
 }
 
-func TestKVWithPathNameArgPrintsContentsOfStore(t *testing.T) {
-
+func Test(t *testing.T) {
 	testscript.Run(t, testscript.Params{
 		Dir: "testdata",
 	})
 }
 
 func TestKVParseArgsReturnsList(t *testing.T) {
-
 	tests := []struct {
 		args []string
 		want kv.Args
@@ -49,11 +48,9 @@ func TestKVParseArgsReturnsList(t *testing.T) {
 			t.Fatalf("want %+v, got %+v", tt.want, got)
 		}
 	}
-
 }
 
 func TestKVParseArgsReturnsGet(t *testing.T) {
-
 	tests := []struct {
 		args []string
 		want kv.Args
@@ -82,7 +79,6 @@ func TestKVParseArgsReturnsGet(t *testing.T) {
 }
 
 func TestKVParseArgsReturnsSet(t *testing.T) {
-
 	tests := []struct {
 		args []string
 		want kv.Args
@@ -131,37 +127,76 @@ func TestOpenStore(t *testing.T) {
 	}
 }
 
-func TestDataPersistsAfterClose(t *testing.T) {
+func TestOpenStore_ReturnsErrorIfFileNotReadable(t *testing.T) {
 	t.Parallel()
+	path := t.TempDir() + "unreadable.kv"
+	err := os.WriteFile(path, nil, 0o000)
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, err = kv.OpenStore(path)
+	if err == nil {
+		t.Fatal("want error on opening unreadable file")
+	}
+}
 
+func TestSetSyncsChangeToDisk(t *testing.T) {
+	t.Parallel()
 	filename := t.TempDir() + "/countries.kv"
-
 	store, err := kv.OpenStore(filename)
 	if err != nil {
 		t.Fatal(err)
 	}
-
 	err = store.Set("GB", "Great Britain")
 	if err != nil {
 		t.Fatal("Set failed")
 	}
-
-	err = store.Close()
-	if err != nil {
-		t.Fatal(err)
-	}
-
 	store, err = kv.OpenStore(filename)
 	if err != nil {
 		t.Fatal(err)
 	}
-
 	got, ok := store.Get("GB")
 	if !ok {
 		t.Fatal("key not found")
 	}
 	if got != "Great Britain" {
 		t.Fatal("wrong value")
+	}
+	err = store.Close()
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestSyncSyncsDataToDisk(t *testing.T) {
+	t.Parallel()
+	filename := t.TempDir() + "/countries.kv"
+	store, err := kv.OpenStore(filename)
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = store.Set("GB", "Great Britain")
+	if err != nil {
+		t.Fatal("Set failed")
+	}
+	err = store.Sync()
+	if err != nil {
+		t.Fatal(err)
+	}
+	store, err = kv.OpenStore(filename)
+	if err != nil {
+		t.Fatal(err)
+	}
+	got, ok := store.Get("GB")
+	if !ok {
+		t.Fatal("key not found")
+	}
+	if got != "Great Britain" {
+		t.Fatal("wrong value")
+	}
+	err = store.Close()
+	if err != nil {
+		t.Fatal(err)
 	}
 }
 
@@ -187,7 +222,6 @@ func TestGetReturnsValueAndOkIfExists(t *testing.T) {
 	if got != want {
 		t.Fatalf("want %q, got %q", want, got)
 	}
-
 }
 
 func TestGetReturnsEmptyValueAndNotOkIfNotExists(t *testing.T) {
@@ -206,5 +240,17 @@ func TestGetReturnsEmptyValueAndNotOkIfNotExists(t *testing.T) {
 	}
 	if got != want {
 		t.Fatalf("want %q, got %q", want, got)
+	}
+}
+
+func TestSyncReturnsErrorForNonWritablePath(t *testing.T) {
+	t.Parallel()
+	store, err := kv.OpenStore(t.TempDir() + "/bogus/data.kv")
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = store.Sync()
+	if err == nil {
+		t.Fatal("want error syncing store to unwritable path")
 	}
 }

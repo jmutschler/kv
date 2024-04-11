@@ -10,7 +10,7 @@ import (
 
 type store struct {
 	path string
-	Data map[string]string
+	data map[string]string
 }
 
 type Args struct {
@@ -21,10 +21,9 @@ type Args struct {
 }
 
 func OpenStore(path string) (*store, error) {
-
 	s := &store{
 		path: path,
-		Data: map[string]string{},
+		data: map[string]string{},
 	}
 
 	file, err := os.Open(path)
@@ -36,7 +35,7 @@ func OpenStore(path string) (*store, error) {
 	}
 	defer file.Close()
 
-	err = json.NewDecoder(file).Decode(&s.Data)
+	err = json.NewDecoder(file).Decode(&s.data)
 	if err != nil {
 		return nil, fmt.Errorf("could not decode %v: %v", path, err)
 	}
@@ -45,28 +44,23 @@ func OpenStore(path string) (*store, error) {
 }
 
 func (s store) Get(key string) (string, bool) {
-	v, ok := s.Data[key]
+	v, ok := s.data[key]
 	return v, ok
 }
 
 func (s *store) Set(key string, value string) error {
-	s.Data[key] = value
-	return nil
+	s.data[key] = value
+	return s.Sync()
 }
 
-func (s store) All() map[string]string {
-	return s.Data
-}
-
-func (s *store) Close() error {
-
+func (s *store) Sync() error {
 	file, err := os.Create(s.path)
 	if err != nil {
 		return err
 	}
 	defer file.Close()
 
-	err = json.NewEncoder(file).Encode(s.Data)
+	err = json.NewEncoder(file).Encode(s.data)
 	if err != nil {
 		return fmt.Errorf("could not encode %v: %v", s.path, err)
 	}
@@ -74,8 +68,15 @@ func (s *store) Close() error {
 	return nil
 }
 
-func Main() int {
+func (s store) All() map[string]string {
+	return s.data
+}
 
+func (s *store) Close() error {
+	return s.Sync()
+}
+
+func Main() int {
 	if len(os.Args) < 2 {
 		fmt.Fprintln(os.Stderr, "Usage: kv <path> [key] [value]")
 		return 1
@@ -106,7 +107,6 @@ func Main() int {
 		fmt.Println(v)
 
 	default:
-		//s := strings.Join(args.Value, " ")
 		err := store.Set(args.Key, args.Value)
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err)
@@ -118,7 +118,6 @@ func Main() int {
 }
 
 func ParseArgs(args []string) (Args, error) {
-
 	a := Args{Path: "default.kv"}
 
 	if len(args) > 0 {

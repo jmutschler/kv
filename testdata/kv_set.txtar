@@ -1,0 +1,11 @@
+exec kv testdata/test_countries.kv BOGUS USELESS
+exec kv testdata/test_countries.kv BOGUS
+stdout 'USELESS'
+grep BOGUS testdata/test_countries.kv
+
+-- testdata/test_countries.kv --
+{
+		"US": "United States",
+		"GB": "Great Britain",
+		"CA": "Canada"
+}

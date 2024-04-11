@@ -1,0 +1,12 @@
+exec kv testdata/test_countries.kv GB
+stdout '^Great Britain$'
+
+! exec kv testdata/test_countries.kv BOGUS
+stderr 'Key not found'
+
+-- testdata/test_countries.kv --
+{
+		"US": "United States",
+		"GB": "Great Britain",
+		"CA": "Canada"
+}
