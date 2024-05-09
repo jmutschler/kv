@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-type store[T any] struct {
+type Store[T any] struct {
 	path string
 	data map[string]T
 }
@@ -20,8 +20,8 @@ type Args struct {
 	Verb  string
 }
 
-func OpenStore[T any](path string) (*store[T], error) {
-	s := &store[T]{
+func OpenStore[T any](path string) (*Store[T], error) {
+	s := &Store[T]{
 		path: path,
 		data: map[string]T{},
 	}
@@ -43,17 +43,17 @@ func OpenStore[T any](path string) (*store[T], error) {
 	return s, nil
 }
 
-func (s store[T]) Get(key string) (T, bool) {
+func (s Store[T]) Get(key string) (T, bool) {
 	v, ok := s.data[key]
 	return v, ok
 }
 
-func (s *store[T]) Set(key string, value T) error {
+func (s *Store[T]) Set(key string, value T) error {
 	s.data[key] = value
 	return s.Sync()
 }
 
-func (s *store[T]) Sync() error {
+func (s *Store[T]) Sync() error {
 	file, err := os.Create(s.path)
 	if err != nil {
 		return err
@@ -68,11 +68,11 @@ func (s *store[T]) Sync() error {
 	return nil
 }
 
-func (s store[T]) All() map[string]T {
+func (s Store[T]) All() map[string]T {
 	return s.data
 }
 
-func (s *store[T]) Close() error {
+func (s *Store[T]) Close() error {
 	return s.Sync()
 }
 
