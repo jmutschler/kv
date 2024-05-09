@@ -5,7 +5,7 @@ import (
 	"os"
 	"testing"
 
-	"kv"
+	"github.com/jmutschler/kv"
 
 	"github.com/rogpeppe/go-internal/testscript"
 )

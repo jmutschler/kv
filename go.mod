@@ -1,4 +1,4 @@
-module kv
+module github.com/jmutschler/kv
 
 go 1.21.3
 

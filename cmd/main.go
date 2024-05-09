@@ -1,7 +1,7 @@
 package main
 
 import (
-	"kv"
+	"github.com/jmutschler/kv"
 )
 
 func main() {
